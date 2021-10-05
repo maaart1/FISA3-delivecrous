@@ -1,0 +1,25 @@
+{
+  "name": "delivecrous",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maaart1/delivecrous.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maaart1/delivecrous/issues"
+  },
+  "homepage": "https://github.com/maaart1/delivecrous#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^6.0.9",
+    "nodemon": "^2.0.13"
+  }
+}
