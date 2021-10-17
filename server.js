@@ -19,32 +19,31 @@ app.get("/dishes", (request, response) => {
             response.json(dishes);
         })
         .catch(() => response.status(404).end());
-})
+});
 
 // GET : get dish by id
 app.get("/dishes/id/:id", (request, response) => {
     Dish.findById(request.params.id)
         .then((dish) => response.json(dish))
         .catch(() => response.status(404).end());
-})
+});
 
 // GET : get dish by name
 app.get("/dishes/name/:name", (request, response) => {
     Dish.find({name: request.params.name})
         .then((dish) => response.json(dish))
         .catch(() => response.status(404).end());
-})
+});
 
-// GET : get all dish of Cart
+// GET : get all dishes of the Cart
 app.get("/cart", (request, response) => {
     Cart.find()
         .then((cart) => response.json(cart)) // TODO Changer pour afficher que les dishes du Cart
         .catch(() => response.status(404).end());
-})
+});
 
-// TODO
-// POST : save a dish in Cart
-app.post("/cart/:id", (request, response) => {
+// POST : add a dish in the Cart
+app.post("/cart/post/:id", (request, response) => {
     Dish.findById(request.params.id).then((dish) => {
         Cart.updateOne({name: "Martin"}, {$push: {dishes: dish}})
             .then((cart) => response.json(cart));
@@ -57,6 +56,15 @@ app.post("/cart/:id", (request, response) => {
                     });
             });*/
     }).catch(() => response.status(404).end());
-})
+});
+
+// TODO
+// DELETE : delete a dish of the Cart
+app.delete("/cart/delete/:id", (request, response) => {
+    Dish.findById(request.params.id).then((dish) => {
+        Cart.updateOne({name: "Martin"}, {$pull: {dishes: dish}})
+            .then((cart) => response.json(cart));
+    }).catch(() => response.status(404).end());
+});
 
 app.listen(5000);
