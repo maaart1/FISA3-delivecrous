@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "git": "git add . | git commit \"$pm_config_commit\"| git push"
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
