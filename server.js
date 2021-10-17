@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const {log} = require("nodemon/lib/utils");
 
 const app = express();
 app.use(express.json());
@@ -17,32 +18,47 @@ app.get("/dishes", (request, response) => {
         .then((dishes) => {
             response.json(dishes);
         })
+        .catch(() => response.status(404).end());
 })
 
 // GET : get dish by id
-app.get("/dishes_by_id/:id", (request, response) => {
+app.get("/dishes/id/:id", (request, response) => {
     Dish.findById(request.params.id)
-        .then((dish) => response.json(dish));
+        .then((dish) => response.json(dish))
+        .catch(() => response.status(404).end());
 })
 
 // GET : get dish by name
-app.get("/dishes_by_name/:name", (request, response) => {
+app.get("/dishes/name/:name", (request, response) => {
     Dish.find({name: request.params.name})
-        .then((dish) => response.json(dish));
+        .then((dish) => response.json(dish))
+        .catch(() => response.status(404).end());
 })
 
 // GET : get all dish of Cart
 app.get("/cart", (request, response) => {
     Cart.find()
-        .then((cart) => response.json(cart[0].dishes));
+        .then((cart) => response.json(cart)) // TODO Changer pour afficher que les dishes du Cart
+        .catch(() => response.status(404).end());
 })
 
 // TODO
-// POST : create a dish
-app.post("/cart/:id", (request, response) => {
-    const dish_to_save = Dish.findById(request.params.id).then((dish) => response.json(dish));
-    dish_to_save.save().then((dish) => response.json(dish));
-})
+// POST : save a dish in Cart
+app.put("/cart/:id", (request, response) => {
+    Dish.findById(request.params.id).then((dish) => {
+        console.log(dish)
+        const cart = Cart.find({name: "Martin"})
+            .then(cart_json => {
+                console.log(cart_json[0])
+                Cart.findOneAndUpdate(cart_json[0].dishes, dish)
+                    .catch(error => {
+                        console.log(error)
+                    });
+            });
 
+    }).catch(error => {
+        console.log(error)
+    });
+})
 
 app.listen(5000);
