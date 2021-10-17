@@ -44,21 +44,19 @@ app.get("/cart", (request, response) => {
 
 // TODO
 // POST : save a dish in Cart
-app.put("/cart/:id", (request, response) => {
+app.post("/cart/:id", (request, response) => {
     Dish.findById(request.params.id).then((dish) => {
-        console.log(dish)
-        const cart = Cart.find({name: "Martin"})
+        Cart.updateOne({name: "Martin"}, {$push: {dishes: dish}})
+            .then((cart) => response.json(cart));
+        /*Cart.find({name: "Martin"})
             .then(cart_json => {
                 console.log(cart_json[0])
-                Cart.findOneAndUpdate(cart_json[0].dishes, dish)
+                Cart.updateOne(cart_json[0].dishes, dish)
                     .catch(error => {
                         console.log(error)
                     });
-            });
-
-    }).catch(error => {
-        console.log(error)
-    });
+            });*/
+    }).catch(() => response.status(404).end());
 })
 
 app.listen(5000);
