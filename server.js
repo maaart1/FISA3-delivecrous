@@ -1,16 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const {log} = require("nodemon/lib/utils");
+const { Dish, Cart } = require("./model/model")
 
 const app = express();
 app.use(express.json());
 
 mongoose.connect("mongodb://localhost:27017/delivecrous");
-const dish_schema = new mongoose.Schema({name: String, description: String, price: Number});
-const cart_schema = new mongoose.Schema({name: String, dishes: [dish_schema]});
-
-const Dish = mongoose.model("Dish", dish_schema);
-const Cart = mongoose.model("Cart", cart_schema);
 
 // GET : get all dishes
 app.get("/dishes", (request, response) => {
@@ -58,13 +53,26 @@ app.post("/cart/post/:id", (request, response) => {
     }).catch(() => response.status(404).end());
 });
 
-// TODO
+// TODO Supprime plusieurs même dish au lieu que d'en supprimer une seule
 // DELETE : delete a dish of the Cart
 app.delete("/cart/delete/:id", (request, response) => {
     Dish.findById(request.params.id).then((dish) => {
         Cart.updateOne({name: "Martin"}, {$pull: {dishes: dish}})
             .then((cart) => response.json(cart));
     }).catch(() => response.status(404).end());
+    /* Dish.findById(request.params.id).then((dish) => {
+        Cart.find({name: "Martin"})
+            .then(cart_json => {
+                console.log(cart_json[0])
+                console.log(dish)
+                for (var i = 0; i < cart_json[0].dishes.length; i++) {
+                    if (cart_json[0].dishes[i].id === dish.id) {
+                        Cart.updateOne({name: "Martin"}, {$pull: {dishes: dish}})
+                            .then((cart) => response.json(cart));
+                    }
+                }
+            });
+    });*/
 });
 
 app.listen(5000);
