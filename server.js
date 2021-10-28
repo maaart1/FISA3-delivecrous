@@ -75,4 +75,9 @@ app.delete("/cart/delete/:id", (request, response) => {
     });*/
 });
 
+// GET : Shopping confirmation
+app.get("/confirm_shopping", (request, response) => {
+    response.json({"name": "Shopping confirmation !"})
+})
+
 app.listen(5000);
