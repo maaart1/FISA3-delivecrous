@@ -2,10 +2,30 @@ const express = require("express");
 const mongoose = require("mongoose");
 const { Dish, Cart } = require("./model/model")
 
-const app = express();
+const app = express();s
 app.use(express.json());
 
+const jwt = require("jsonwebtoken");
+const { response } = require("express");
+require("dotenv").config();
+
+const user = {
+    id: 42, 
+    name: "Martin", 
+    email: "martin@gmail.com"
+}
+
+function generate_access_token(user) {
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '300s'});
+}
+
+const access_token = generate_access_token(user);
+
 mongoose.connect("mongodb://localhost:27017/delivecrous");
+
+app.post('/api/login', (request, response) => {
+    
+})
 
 // GET : get all dishes
 app.get("/dishes", (request, response) => {
