@@ -39,19 +39,32 @@ app.get("/cart", (request, response) => {
 
 // POST : add a dish in the Cart
 app.post("/cart/post/:id", (request, response) => {
-    Dish.findById(request.params.id).then((dish) => {
+    /*Dish.findById(request.params.id).then((dish) => {
         Cart.updateOne({name: "Martin"}, {$push: {dishes: dish}})
-            .then((cart) => response.json(cart));
-        /*Cart.find({name: "Martin"})
-            .then(cart_json => {
-                console.log(cart_json[0])
-                Cart.updateOne(cart_json[0].dishes, dish)
-                    .catch(error => {
-                        console.log(error)
-                    });
-            });*/
+            .then((cart) => response.json(cart));*/
+    Dish.findById(request.params.id).then((dish_to_save) => {
+        Cart.findOne({name: "Martin"})
+        .then(cart_json => {
+            console.log(dish_to_save);
+            if (cart_json.dishes.length != 0){
+                cart_json.dishes.forEach(element => {
+                    if (element.dish.id == dish_to_save.id) {
+                        element.quantity += 1;
+                        console.log(element);
+                        cart_json.save().then((cart) => response.json(cart)); 
+                    }else {
+                        Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
+                            .then((cart) => response.json(cart));
+                    }
+                });
+            }else{
+                Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
+                            .then((cart) => response.json(cart));
+            }
+        }).catch(() => response.status(404).end());
     }).catch(() => response.status(404).end());
 });
+
 
 // TODO Supprime plusieurs même dish au lieu que d'en supprimer une seule
 // DELETE : delete a dish of the Cart
@@ -63,7 +76,6 @@ app.delete("/cart/delete/:id", (request, response) => {
     /* Dish.findById(request.params.id).then((dish) => {
         Cart.find({name: "Martin"})
             .then(cart_json => {
-                console.log(cart_json[0])
                 console.log(dish)
                 for (var i = 0; i < cart_json[0].dishes.length; i++) {
                     if (cart_json[0].dishes[i].id === dish.id) {
