@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { Dish, Cart } = require("./model/model")
+const {Dish, Cart, User} = require("./model/model")
 
 const app = express();
 app.use(express.json());
@@ -44,24 +44,24 @@ app.post("/cart/post/:id", (request, response) => {
             .then((cart) => response.json(cart));*/
     Dish.findById(request.params.id).then((dish_to_save) => {
         Cart.findOne({name: "Martin"})
-        .then(cart_json => {
-            console.log(dish_to_save);
-            if (cart_json.dishes.length != 0){
-                cart_json.dishes.forEach(element => {
-                    if (element.dish.id == dish_to_save.id) {
-                        element.quantity += 1;
-                        console.log(element);
-                        cart_json.save().then((cart) => response.json(cart)); 
-                    }else {
-                        Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
-                            .then((cart) => response.json(cart));
-                    }
-                });
-            }else{
-                Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
-                            .then((cart) => response.json(cart));
-            }
-        }).catch(() => response.status(404).end());
+            .then(cart_json => {
+                console.log(dish_to_save);
+                if (cart_json.dishes.length != 0) {
+                    cart_json.dishes.forEach(element => {
+                        if (element.dish.id == dish_to_save.id) {
+                            element.quantity += 1;
+                            console.log(element);
+                            cart_json.save().then((cart) => response.json(cart));
+                        } else {
+                            Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
+                                .then((cart) => response.json(cart));
+                        }
+                    });
+                } else {
+                    Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
+                        .then((cart) => response.json(cart));
+                }
+            }).catch(() => response.status(404).end());
     }).catch(() => response.status(404).end());
 });
 
