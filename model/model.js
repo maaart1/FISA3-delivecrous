@@ -8,7 +8,8 @@ const dish_schema = new mongoose.Schema({
 });
 
 const cart_schema = new mongoose.Schema({
-    name: String,
+    price: Number,
+    address: String,
     dishes: [
         {
             quantity: Number,
@@ -18,7 +19,8 @@ const cart_schema = new mongoose.Schema({
 })
 
 const user_schema = new mongoose.Schema({
-    name: String,
+    login: String,
+    password: String,
     cart: cart_schema
 })
 
