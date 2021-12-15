@@ -40,7 +40,7 @@ const checkToken = (request, response, next) => {
     const token = request.headers.authorization && extractBearerToken(request.headers.authorization)
 
     if (!token) {
-        return response.status(401).json({message: 'Error: You need token :/'})
+        return response.status(401).json({message: 'Error: You need token to access :/'})
     }
 
     jwt.verify(token, process.env.SECRET_KEY, (err, decoded_token) => {
@@ -51,12 +51,13 @@ const checkToken = (request, response, next) => {
         }
     })
 }
+
 /* -- Route to login or register an account -- */
 
 /* POST : sign in with login and password  */
 app.post("/login", (request, response) => {
     if (!request.body.login || !request.body.password) {
-        return response.status(404).json({message: 'Error: Enter login and password :/'})
+        return response.status(404).json({message: 'Error: Please enter login and password :/'})
     }
 
     User.findOne({username: request.body.login, password: request.body.password})
@@ -72,7 +73,7 @@ app.post("/login", (request, response) => {
 /* POST : register a new user  */
 app.post("/register", (request, response) => {
     if (!request.body.login || !request.body.password) {
-        return response.status(404).json({message: 'Error: Enter login and password :/'})
+        return response.status(404).json({message: 'Error: Please enter login and password :/'})
     }
 
     User.findOne({login: request.body.login})
@@ -117,21 +118,44 @@ app.get("/dishes/:id", (request, response) => {
 /* -- Route accessible only with an account -- */
 
 /* GET : get all dishes of the Cart */
-app.get("/cart/:id", checkToken, (request, response) => {
+app.get("/cart", checkToken, (request, response) => {
     const decoded_user = decodeToken(request, response);
-    Cart.find({_id: decoded_user.id})
-        .then((cart) => {
-            cart.map((dish) => {
-                cart.price += dish.price;
+    User.find({login: decoded_user.login})
+        .then((user) => {
+            user[0].cart.dishes.map((dish) => {
+                console.log(dish.dish.price)
+                user[0].cart.price += (dish.dish.price * dish.quantity);
+                user[0].save().then((user) => response.json(user));
             })
-            response.json(cart);
+            response.json(user[0].cart);
         })
         .catch(() => response.status(404).end());
 });
 
 /* POST : add a dish in the Cart */
-app.post("/cart/post/:id", (request, response) => {
-
+// TODO Toujours la même erreur
+app.post("/cart", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+    Dish.findById(request.params.id).then((dish_to_save) => {
+        User.find({login: decoded_user.login})
+            .then((user) => {
+                if (user[0].cart.dishes.length !== 0) {
+                    user[0].cart.dishes.forEach(dish => {
+                        if (dish.dish.id === dish_to_save.id) {
+                            dish.quantity += 1;
+                            console.log(dish);
+                            user[0].save().then((cart) => response.json(cart));
+                        } else {
+                            user[0].cart.dishes.push({quantity: 1, dish: dish_to_save})
+                            user[0].save().then((user) => response.json(user));
+                        }
+                    });
+                } else {
+                    user[0].cart.dishes.push({quantity: 1, dish: dish_to_save})
+                    user[0].save().then((user) => response.json(user));
+                }
+            }).catch(() => response.status(404).end());
+    })
 })
 
 /*app.post("/cart/post/:id", (request, response) => {
@@ -192,8 +216,18 @@ app.delete("/cart/delete/:id", (request, response) => {
 });
 
 /* GET : Shopping confirmation */
-app.get("/confirm_shopping", (request, response) => {
-    response.json({"name": "Shopping confirmation ! :)"})
+app.get("/confirm_shopping", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+    if (!request.body.address) {
+        return response.status(400).json({message: 'Error: Please enter your address :/'})
+    }
+    User.find({login: decoded_user.login})
+        .then((user) => {
+            response.status(201).json({
+                message: "Confirmed shopping, your order is being prepared and will be sent ! :) You can see your cart compisition :",
+                cart: user[0].cart
+            })
+        })
 })
 
 /* GET : Shopping confirmation */
