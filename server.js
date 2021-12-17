@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken")
-const {Dish, Cart, User} = require("./model/model")
+const {Dish, Cart, User} = require("./model")
 
 /* Application initialisation */
 const app = express();
@@ -51,8 +51,6 @@ const checkToken = (request, response, next) => {
         }
     })
 }
-
-/* -- Route to login or register an account -- */
 
 /* POST: sign in with login and password  */
 app.post("/login", (request, response) => {
@@ -108,13 +106,6 @@ app.get("/dishes/:id", (request, response) => {
         .catch(() => response.status(404).end());
 });
 
-/* GET : get dish by name */
-/*app.get("/dishes/name/:name", (request, response) => {
-    Dish.find({name: request.params.name})
-        .then((dish) => response.json(dish))
-        .catch(() => response.status(404).end());
-});*/
-
 /* ---------- Route accessible only with an account ---------- */
 
 /* POST: add a dish  */
@@ -136,7 +127,7 @@ app.get("/cart", checkToken, (request, response) => {
     Cart.find({user_id: decoded_user.id})
         .then((cart) => {
             return response.status(200).json(cart);
-        }).catch(() => response.status(404).end());
+        });
 });
 
 /* GET: get opened cart of user */
@@ -144,8 +135,11 @@ app.get("/cart/opened", checkToken, (request, response) => {
     const decoded_user = decodeToken(request, response);
     Cart.findOne({user_id: decoded_user.id, isOpened: true})
         .then((cart) => {
+            if (!cart) {
+                return response.status(404).json({message: "Error: Cart not found :/"})
+            }
             return response.status(200).json(cart);
-        }).catch(() => response.status(404).end());
+        });
 });
 
 /* GET: get all cart closed of user */
@@ -153,8 +147,11 @@ app.get("/cart/closed", checkToken, (request, response) => {
     const decoded_user = decodeToken(request, response);
     Cart.find({user_id: decoded_user.id, isOpened: false})
         .then((cart) => {
+            if (!cart) {
+                return response.status(404).json({message: "Error: Cart not found :/"})
+            }
             return response.status(200).json(cart);
-        }).catch(() => response.status(404).end());
+        });
 });
 
 /* POST: add a dish in the Cart */
@@ -186,7 +183,7 @@ app.post("/cart/:id", checkToken, (request, response) => {
 app.delete("/cart/:id", checkToken, (request, response) => {
     const decoded_user = decodeToken(request, response);
 
-    Cart.findOne({user_id: decoded_user.id})
+    Cart.findOne({user_id: decoded_user.id, isOpened: true})
         .then((cart) => {
             if (!cart) {
                 return response.status(404).json({message: 'Error: Cart not found :/'});
@@ -213,27 +210,32 @@ app.delete("/dishes/:id", checkToken, (request, response) => {
         }).catch(() => response.status(404).end());
 })
 
-/* GET: Shopping confirmation */
-app.get("/confirm_shopping", checkToken, (request, response) => {
+/* POST: Shopping confirmation */
+app.post("/confirm_shopping", checkToken, (request, response) => {
     const decoded_user = decodeToken(request, response);
     if (!request.body.address) {
         return response.status(400).json({message: 'Error: Please enter your address :/'})
     }
-    User.find({login: decoded_user.login})
+    User.findOne({login: decoded_user.login})
         .then((user) => {
-            Cart.findById(user.id)
-                .then((cart) => {
-                    cart.isOpened = false;
-                    cart.save();
-                })
-            user.address = request.body.address;
-            user.save().then((user) => {
-                return response.status(200).json({
-                    message: "Confirmed shopping, your order is being prepared and will be sent ! :) You can see your cart compisition :",
-                    cart: user[0].cart
-                })
-            })
+            console.log(user)
+            return Promise.all([user, Cart.findOne({user_id: decoded_user.id, isOpened: true})])
         })
+        .then(([user, cart]) => {
+                if (!cart) {
+                    return response.status(404).json({message: 'Error: Cart not found :/'})
+                }
+                cart.isOpened = false;
+                cart.save();
+                user.address = request.body.address;
+                user.save().then((user) => {
+                    return response.status(200).json({
+                        message: "Confirmed shopping, your order is being prepared and will be sent ! :) You can see your cart compisition :",
+                        cart: user.cart
+                    })
+                })
+            }
+        )
 
 })
 
