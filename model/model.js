@@ -10,6 +10,8 @@ const dish_schema = new mongoose.Schema({
 const cart_schema = new mongoose.Schema({
     price: Number,
     address: String,
+    isOpened: Boolean,
+    user_id: Object,
     dishes: [
         {
             quantity: Number,
@@ -20,8 +22,7 @@ const cart_schema = new mongoose.Schema({
 
 const user_schema = new mongoose.Schema({
     login: String,
-    password: String,
-    cart: cart_schema
+    password: String
 })
 
 const Dish = mongoose.model("Dish", dish_schema);

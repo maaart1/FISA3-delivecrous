@@ -54,7 +54,7 @@ const checkToken = (request, response, next) => {
 
 /* -- Route to login or register an account -- */
 
-/* POST : sign in with login and password  */
+/* POST: sign in with login and password  */
 app.post("/login", (request, response) => {
     if (!request.body.login || !request.body.password) {
         return response.status(404).json({message: 'Error: Please enter login and password :/'})
@@ -70,7 +70,7 @@ app.post("/login", (request, response) => {
     })
 })
 
-/* POST : register a new user  */
+/* POST: register a new user  */
 app.post("/register", (request, response) => {
     if (!request.body.login || !request.body.password) {
         return response.status(404).json({message: 'Error: Please enter login and password :/'})
@@ -90,9 +90,9 @@ app.post("/register", (request, response) => {
 })
 
 
-/* -- Route accessible without an account -- */
+/* ---------- Route accessible without an account ---------- */
 
-/* GET : get all dishes */
+/* GET: get all dishes */
 app.get("/dishes", (request, response) => {
     Dish.find()
         .then((dishes) => {
@@ -101,7 +101,7 @@ app.get("/dishes", (request, response) => {
         .catch(() => response.status(404).end());
 });
 
-/* GET : get dish by id */
+/* GET: get dish by id */
 app.get("/dishes/:id", (request, response) => {
     Dish.findById(request.params.id)
         .then((dish) => response.json(dish))
@@ -115,107 +115,105 @@ app.get("/dishes/:id", (request, response) => {
         .catch(() => response.status(404).end());
 });*/
 
-/* -- Route accessible only with an account -- */
+/* ---------- Route accessible only with an account ---------- */
 
-/* GET : get all dishes of the Cart */
-app.get("/cart", checkToken, (request, response) => {
-    const decoded_user = decodeToken(request, response);
-    User.find({login: decoded_user.login})
-        .then((user) => {
-            user[0].cart.dishes.map((dish) => {
-                console.log(dish.dish.price)
-                user[0].cart.price += (dish.dish.price * dish.quantity);
-                user[0].save().then((user) => response.json(user));
-            })
-            response.json(user[0].cart);
-        })
-        .catch(() => response.status(404).end());
-});
-
-/* POST : add a dish in the Cart */
-// TODO Toujours la même erreur
-app.post("/cart", checkToken, (request, response) => {
-    const decoded_user = decodeToken(request, response);
-    Dish.findById(request.params.id).then((dish_to_save) => {
-        User.find({login: decoded_user.login})
-            .then((user) => {
-                if (user[0].cart.dishes.length !== 0) {
-                    user[0].cart.dishes.forEach(dish => {
-                        if (dish.dish.id === dish_to_save.id) {
-                            dish.quantity += 1;
-                            console.log(dish);
-                            user[0].save().then((cart) => response.json(cart));
-                        } else {
-                            user[0].cart.dishes.push({quantity: 1, dish: dish_to_save})
-                            user[0].save().then((user) => response.json(user));
-                        }
-                    });
-                } else {
-                    user[0].cart.dishes.push({quantity: 1, dish: dish_to_save})
-                    user[0].save().then((user) => response.json(user));
-                }
-            }).catch(() => response.status(404).end());
-    })
-})
-
-/*app.post("/cart/post/:id", (request, response) => {
-    /*Dish.findById(request.params.id).then((dish) => {
-        Cart.updateOne({name: "Martin"}, {$push: {dishes: dish}})
-            .then((cart) => response.json(cart));*/
-/*Dish.findById(request.params.id).then((dish_to_save) => {
-    Cart.findOne({name: "Martin"})
-        .then(cart_json => {
-            console.log(dish_to_save);
-            if (cart_json.dishes.length != 0) {
-                cart_json.dishes.forEach(element => {
-                    if (element.dish.id == dish_to_save.id) {
-                        element.quantity += 1;
-                        console.log(element);
-                        cart_json.save().then((cart) => response.json(cart));
-                    } else {
-                        Cart.updateOne({name: "Martin"}, {
-                            $push: {
-                                dishes: {
-                                    quantity: 1,
-                                    dish: dish_to_save
-                                }
-                            }
-                        })
-                            .then((cart) => response.json(cart));
-                    }
+/* POST: add a dish  */
+app.post("/dishes", checkToken, (request, response) => {
+    Dish.findOne({name: request.body.name})
+        .then((dish) => {
+            if (!dish) {
+                const new_dish = new Dish(request.body);
+                new_dish.save().then((dish) => {
+                    return response.status(201).json(dish)
                 });
-            } else {
-                Cart.updateOne({name: "Martin"}, {$push: {dishes: {quantity: 1, dish: dish_to_save}}})
-                    .then((cart) => response.json(cart));
             }
         }).catch(() => response.status(404).end());
-}).catch(() => response.status(404).end());
-});
-*/
+})
 
-
-// TODO Supprime plusieurs même dish au lieu que d'en supprimer une seule
-/* DELETE : delete a dish of the Cart */
-app.delete("/cart/delete/:id", (request, response) => {
-    Dish.findById(request.params.id).then((dish) => {
-        Cart.updateOne({name: "Martin"}, {$pull: {dishes: dish}})
-            .then((cart) => response.json(cart));
-    }).catch(() => response.status(404).end());
-    /* Dish.findById(request.params.id).then((dish) => {
-        Cart.find({name: "Martin"})
-            .then(cart_json => {
-                console.log(dish)
-                for (var i = 0; i < cart_json[0].dishes.length; i++) {
-                    if (cart_json[0].dishes[i].id === dish.id) {
-                        Cart.updateOne({name: "Martin"}, {$pull: {dishes: dish}})
-                            .then((cart) => response.json(cart));
-                    }
-                }
-            });
-    });*/
+/* GET: get all dishes of the Cart */
+app.get("/cart", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+    Cart.find({user_id: decoded_user.id})
+        .then((cart) => {
+            return response.status(200).json(cart);
+        }).catch(() => response.status(404).end());
 });
 
-/* GET : Shopping confirmation */
+/* GET: get opened cart of user */
+app.get("/cart/opened", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+    Cart.findOne({user_id: decoded_user.id, isOpened: true})
+        .then((cart) => {
+            return response.status(200).json(cart);
+        }).catch(() => response.status(404).end());
+});
+
+/* GET: get all cart closed of user */
+app.get("/cart/closed", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+    Cart.find({user_id: decoded_user.id, isOpened: false})
+        .then((cart) => {
+            return response.status(200).json(cart);
+        }).catch(() => response.status(404).end());
+});
+
+/* POST: add a dish in the Cart */
+app.post("/cart/:id", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+
+    Cart.findOne({user_id: decoded_user.id, isOpened: true})
+        .then((cart) => {
+            if (!cart) {
+                cart = new Cart({price: 0, address: "", user_id: decoded_user.id, dishes: [], isOpened: true})
+                return Promise.all([cart.save(), Dish.findById(request.params.id)])
+            }
+            return Promise.all([cart, Dish.findById(request.params.id)])
+        })
+        .then(([cart, dish]) => {
+            const dish_in_cart = cart.dishes.find(dish_in => dish_in.dish.id === dish.id)
+            if (dish_in_cart) {
+                dish_in_cart.quantity += 1;
+                cart.price += dish_in_cart.dish.price;
+            } else {
+                cart.price += dish.price;
+                cart.dishes.push({quantity: 1, dish: dish});
+            }
+            cart.save().then((cart) => response.status(201).json(cart));
+        }).catch(() => response.status(404).end());
+})
+
+/* DELETE: delete a dish of the Cart */
+app.delete("/cart/:id", checkToken, (request, response) => {
+    const decoded_user = decodeToken(request, response);
+
+    Cart.findOne({user_id: decoded_user.id})
+        .then((cart) => {
+            if (!cart) {
+                return response.status(404).json({message: 'Error: Cart not found :/'});
+            }
+            return Promise.all([cart, Dish.findById(request.params.id)])
+        })
+        .then(([cart, dish]) => {
+            const dish_in_cart = cart.dishes.find(dish_in => dish_in.dish.id === dish.id)
+            if (dish_in_cart) {
+                dish_in_cart.quantity -= 1;
+                cart.price -= dish_in_cart.dish.price;
+            }
+            cart.save().then((cart) => response.status(200).json(cart));
+        }).catch(() => response.status(404).end());
+});
+
+/* DELETE: delete a dish */
+app.delete("/dishes/:id", checkToken, (request, response) => {
+    Dish.findByIdAndDelete(request.params.id)
+        .then((dish) => {
+            if (dish) {
+                return response.status(200).json(dish)
+            }
+        }).catch(() => response.status(404).end());
+})
+
+/* GET: Shopping confirmation */
 app.get("/confirm_shopping", checkToken, (request, response) => {
     const decoded_user = decodeToken(request, response);
     if (!request.body.address) {
@@ -223,16 +221,26 @@ app.get("/confirm_shopping", checkToken, (request, response) => {
     }
     User.find({login: decoded_user.login})
         .then((user) => {
-            response.status(201).json({
-                message: "Confirmed shopping, your order is being prepared and will be sent ! :) You can see your cart compisition :",
-                cart: user[0].cart
+            Cart.findById(user.id)
+                .then((cart) => {
+                    cart.isOpened = false;
+                    cart.save();
+                })
+            user.address = request.body.address;
+            user.save().then((user) => {
+                return response.status(200).json({
+                    message: "Confirmed shopping, your order is being prepared and will be sent ! :) You can see your cart compisition :",
+                    cart: user[0].cart
+                })
             })
         })
+
 })
 
-/* GET : Shopping confirmation */
 app.get("*", (request, response) => {
-    response.json({message: "Not Found Sorry Dude :("})
+    response.json({message: "Not Found Sorry Man :("})
 })
-console.log(process.env.PORT)
-app.listen(process.env.PORT);
+
+app.listen(process.env.PORT, () => {
+    console.log(`Server is running on port ${process.env.PORT} :)`)
+});
