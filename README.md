@@ -2,15 +2,22 @@
 
 ### API
 
+##### _Route accessible with and without an account :_
+
 |  Method  | Url                | Description                      |
 | :------: | :----------------- | :------------------------------- |
 |  _GET_   | `/dishes`          | Get all dishes                |
 |  _GET_   | `/dishes/:id`      | Get one dish by id            |
+|  _POST_  | `/login`           | Sign in with login and password     |
+|  _POST_  | `/register`        | Register a new user    |
+
+##### _Route accessible only with an account :_
+
+|  Method  | Url                | Description                      |
+| :------: | :----------------- | :------------------------------- |
 |  _GET_   | `/cart`            | Get all dishes of Cart client  |
 |  _GET_   | `/cart/opened`     | Get the opened Cart of the client  |
 |  _GET_   | `/cart/closed`     | Get the closed Carts of the client  |
-|  _POST_  | `/login`           | Sign in with login and password     |
-|  _POST_  | `/register`        | Register a new user    |
 |  _POST_  | `/dishes`          | Add a new dish    |
 |  _POST_  | `/cart/:id`        | Add a dish in the Cart client   |
 |  _POST_  | `/confirm-shopping`| Shopping confirmation   |

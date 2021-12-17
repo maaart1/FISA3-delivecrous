@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose'
 
-// TODO Ajuster le cart avec la quantity
 const dish_schema = new mongoose.Schema({
     name: String,
     description: String,
@@ -29,4 +28,4 @@ const Dish = mongoose.model("Dish", dish_schema);
 const Cart = mongoose.model("Cart", cart_schema);
 const User = mongoose.model("User", user_schema);
 
-module.exports = {Dish, Cart, User};
+export {Dish, Cart, User};
