@@ -64,7 +64,7 @@ router.post("/confirm_shopping", checkToken, (request, response) => {
                 user.save().then((user) => {
                     return response.status(200).json({
                         message: "Confirmed shopping, your order is being prepared and will be sent ! :) You can see your cart compisition :",
-                        cart: user.cart
+                        cart: cart
                     })
                 })
             }
